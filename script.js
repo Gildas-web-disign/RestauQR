@@ -1,353 +1,753 @@
 "use strict";
 
-document.addEventListener("DOMContentLoaded", function () {
+/*
+ * RESTAUQR
+ *
+ * Version front-end de démonstration.
+ *
+ * IMPORTANT :
+ * - Aucun paiement réel n'est encaissé par ce fichier.
+ * - Aucune information bancaire privée n'est enregistrée ici.
+ * - L'authentification réelle nécessite un backend.
+ * - Les commandes réelles nécessitent un backend ou un service connecté.
+ * - Les paiements doivent être confirmés côté serveur.
+ */
 
-  const app = document.getElementById("app");
-  const menuToggle = document.getElementById("menuToggle");
-  const mainNav = document.getElementById("mainNav");
+const RESTAUQR = {
+    subscriptionPrice: 5000,
+    currency: "FCFA"
+};
 
-  // Liste des pages disponibles
-  const pages = {
-    accueil: "page-accueil",
-    menus: "page-menus",
-    fonctionnalites: "page-fonctionnalites",
-    tarifs: "page-tarifs",
-    abonnement: "page-abonnement",
-    inscription: "page-inscription",
-    connexion: "page-connexion",
-    commande: "page-commande",
-    contact: "page-contact",
-    introuvable: "page-introuvable"
-  };
 
-  // Afficher une page sans faire défiler l'écran
-  function afficherPage(nom, historique = true) {
+/* =========================================
+   1. DONNÉES DES 20 PLATS
+========================================= */
 
-    if (!pages[nom]) {
-      nom = "introuvable";
+const dishes = [
+    {
+        id: 1,
+        name: "Pizza maison",
+        category: "pizza",
+        price: 3500,
+        description: "Une pizza généreuse avec une garniture savoureuse.",
+        image: "photo-1565299624946-b28f40a0ae38"
+    },
+    {
+        id: 2,
+        name: "Burger gourmet",
+        category: "burgers",
+        price: 2500,
+        description: "Un burger généreux pour une pause gourmande.",
+        image: "photo-1568901346375-23c9450c58cd"
+    },
+    {
+        id: 3,
+        name: "Salade fraîche",
+        category: "plats",
+        price: 2000,
+        description: "Un mélange de légumes frais et colorés.",
+        image: "photo-1540189549336-e6e99c3679fe"
+    },
+    {
+        id: 4,
+        name: "Pâtes italiennes",
+        category: "plats",
+        price: 3000,
+        description: "Des pâtes accompagnées d'une sauce gourmande.",
+        image: "photo-1473093295043-cdd812d0e601"
+    },
+    {
+        id: 5,
+        name: "Poulet grillé",
+        category: "plats",
+        price: 4000,
+        description: "Un plat de poulet grillé à servir avec son accompagnement.",
+        image: "photo-1532550907401-a500c9a57435"
+    },
+    {
+        id: 6,
+        name: "Bol équilibré",
+        category: "plats",
+        price: 2500,
+        description: "Un assortiment coloré pour un repas complet.",
+        image: "photo-1512621776951-a57141f2eefd"
+    },
+    {
+        id: 7,
+        name: "Soupe maison",
+        category: "plats",
+        price: 1800,
+        description: "Une soupe réconfortante et pleine de saveurs.",
+        image: "photo-1547592180-85f173990554"
+    },
+    {
+        id: 8,
+        name: "Burger classique",
+        category: "burgers",
+        price: 2000,
+        description: "Un classique gourmand pour les petites faims.",
+        image: "photo-1551782450-a2132b4ba21d"
+    },
+    {
+        id: 9,
+        name: "Pizza végétarienne",
+        category: "pizza",
+        price: 3000,
+        description: "Une pizza garnie de légumes colorés.",
+        image: "photo-1513104890138-7c749659a591"
+    },
+    {
+        id: 10,
+        name: "Pâtes crémeuses",
+        category: "plats",
+        price: 3200,
+        description: "Une recette de pâtes à la texture onctueuse.",
+        image: "photo-1551183053-bf91a1d81141"
+    },
+    {
+        id: 11,
+        name: "Dessert gourmand",
+        category: "desserts",
+        price: 1500,
+        description: "Une douceur pour terminer le repas.",
+        image: "photo-1563805042-7684c019e1cb"
+    },
+    {
+        id: 12,
+        name: "Gâteau maison",
+        category: "desserts",
+        price: 1800,
+        description: "Une part de gâteau pour les amateurs de douceurs.",
+        image: "photo-1578985545062-69928b1d9587"
+    },
+    {
+        id: 13,
+        name: "Crème glacée",
+        category: "desserts",
+        price: 1200,
+        description: "Une pause fraîche et sucrée.",
+        image: "photo-1497034825429-c343d7c6a68f"
+    },
+    {
+        id: 14,
+        name: "Assiette gourmande",
+        category: "plats",
+        price: 3500,
+        description: "Une assiette généreuse à personnaliser.",
+        image: "photo-1547592180-85f173990554"
+    },
+    {
+        id: 15,
+        name: "Pizza spéciale",
+        category: "pizza",
+        price: 4500,
+        description: "Une pizza généreuse pour les grandes faims.",
+        image: "photo-1579751626657-72bc17010498"
+    },
+    {
+        id: 16,
+        name: "Cheeseburger",
+        category: "burgers",
+        price: 2800,
+        description: "Un burger accompagné d'une tranche de fromage.",
+        image: "photo-1571091718767-18b5b1457add"
+    },
+    {
+        id: 17,
+        name: "Jus de fruits",
+        category: "boissons",
+        price: 1000,
+        description: "Une boisson fruitée à servir bien fraîche.",
+        image: "photo-1534353473418-4cfa6c56fd38"
+    },
+    {
+        id: 18,
+        name: "Smoothie fruité",
+        category: "boissons",
+        price: 1500,
+        description: "Un mélange de fruits pour une pause rafraîchissante.",
+        image: "photo-1505252585461-04db1eb84625"
+    },
+    {
+        id: 19,
+        name: "Boisson fraîche",
+        category: "boissons",
+        price: 800,
+        description: "Une boisson à déguster pendant le repas.",
+        image: "photo-1513558161293-cdaf765edfd7"
+    },
+    {
+        id: 20,
+        name: "Dessert aux fruits",
+        category: "desserts",
+        price: 1600,
+        description: "Une composition fruitée pour terminer en douceur.",
+        image: "photo-1488477181946-6428a0291777"
+    }
+];
+
+
+/* =========================================
+   2. OUTILS GÉNÉRAUX
+========================================= */
+
+const $ = (selector, root = document) => root.querySelector(selector);
+
+const $$ = (selector, root = document) =>
+    Array.from(root.querySelectorAll(selector));
+
+function escapeHTML(value) {
+    return String(value ?? "").replace(/[&<>"']/g, character => {
+        const entities = {
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#039;"
+        };
+
+        return entities[character];
+    });
+}
+
+function formatPrice(price) {
+    return Number(price).toLocaleString("fr-FR") + " FCFA";
+}
+
+function getImageURL(imageId, width = 800) {
+    return (
+        "https://images.unsplash.com/" +
+        imageId +
+        "?auto=format&fit=crop&w=" +
+        width +
+        "&q=80"
+    );
+}
+
+function showToast(message) {
+    const toast = $("#toast");
+
+    if (!toast) return;
+
+    toast.textContent = message;
+    toast.classList.add("show");
+
+    clearTimeout(showToast.timer);
+
+    showToast.timer = setTimeout(() => {
+        toast.classList.remove("show");
+    }, 3500);
+}
+
+function refreshIcons() {
+    if (window.lucide) {
+        window.lucide.createIcons();
+    }
+}
+
+
+/* =========================================
+   3. NAVIGATION ENTRE LES PAGES
+========================================= */
+
+const validPages = [
+    "accueil",
+    "menu",
+    "fonctionnalites",
+    "tarifs",
+    "abonnement",
+    "connexion",
+    "contact"
+];
+
+function getPageFromURL() {
+    const params = new URLSearchParams(window.location.search);
+    const requestedPage = params.get("page") || "accueil";
+
+    return validPages.includes(requestedPage)
+        ? requestedPage
+        : "accueil";
+}
+
+function navigateTo(page) {
+    if (!validPages.includes(page)) {
+        page = "accueil";
     }
 
-    document.querySelectorAll(".page").forEach(function (page) {
-      page.hidden = true;
+    const url = new URL(window.location.href);
+
+    if (page === "accueil") {
+        url.searchParams.delete("page");
+    } else {
+        url.searchParams.set("page", page);
+    }
+
+    history.pushState({ page }, "", url);
+
+    renderPage(page);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function renderPage(page = getPageFromURL()) {
+    $$(".page").forEach(section => {
+        section.classList.remove("active");
     });
 
-    const pageCible = document.getElementById(pages[nom]);
+    const target = $("#page-" + page);
 
-    if (pageCible) {
-      pageCible.hidden = false;
+    if (target) {
+        target.classList.add("active");
+    } else {
+        $("#page-accueil")?.classList.add("active");
+        page = "accueil";
     }
 
-    // Fermer le menu mobile
-    if (mainNav) {
-      mainNav.classList.remove("open");
-    }
+    $$("[data-nav]").forEach(link => {
+        const active = link.dataset.nav === page;
 
-    if (menuToggle) {
-      menuToggle.setAttribute("aria-expanded", "false");
-    }
+        link.classList.toggle("active", active);
 
-    // Mettre à jour l'adresse de la page
-    if (historique) {
-      const url = new URL(window.location.href);
-      url.searchParams.set("page", nom);
-
-      window.history.pushState(
-        { page: nom },
-        "",
-        url.pathname + url.search + url.hash
-      );
-    }
-
-    // Modifier le titre de l'onglet
-    document.title =
-      "RestauQR — " +
-      nom.charAt(0).toUpperCase() +
-      nom.slice(1);
-
-    if (app) {
-      app.dataset.currentPage = nom;
-    }
-  }
-
-  // Navigation entre les pages
-  document.addEventListener("click", function (event) {
-
-    const lien = event.target.closest("a");
-
-    if (!lien) return;
-
-    const href = lien.getAttribute("href");
-
-    if (!href) return;
-
-    // Ne pas intercepter les liens externes
-    if (
-      href.startsWith("https://") ||
-      href.startsWith("http://") ||
-      href.startsWith("mailto:") ||
-      href.startsWith("tel:") ||
-      href.startsWith("#")
-    ) {
-      return;
-    }
-
-    let url;
-
-    try {
-      url = new URL(href, window.location.href);
-    } catch (error) {
-      return;
-    }
-
-    // Vérifier que le lien pointe vers le site actuel
-    if (url.origin !== window.location.origin) return;
-
-    // Accepter index.html?page=... ou ?page=...
-    const cheminActuel = window.location.pathname.replace(/\/+$/, "");
-    const cheminCible = url.pathname.replace(/\/+$/, "");
-
-    const memePage =
-      cheminActuel === cheminCible ||
-      cheminCible.endsWith("/index.html");
-
-    if (memePage && (url.searchParams.has("page") ||
-                     cheminCible.endsWith("/index.html"))) {
-
-      event.preventDefault();
-
-      const nom = url.searchParams.get("page") || "accueil";
-
-      afficherPage(nom, true);
-    }
-  });
-
-  // Menu mobile
-  if (menuToggle && mainNav) {
-
-    menuToggle.setAttribute("aria-expanded", "false");
-
-    menuToggle.addEventListener("click", function () {
-
-      const ouvert = mainNav.classList.toggle("open");
-
-      menuToggle.setAttribute(
-        "aria-expanded",
-        String(ouvert)
-      );
+        if (active) {
+            link.setAttribute("aria-current", "page");
+        } else {
+            link.removeAttribute("aria-current");
+        }
     });
-  }
 
-  // Sélectionner un plat et ouvrir la page de commande
-  document.querySelectorAll(".order-btn").forEach(function (bouton) {
+    closeMobileMenu();
+    refreshIcons();
+}
 
-    bouton.addEventListener("click", function () {
+function closeMobileMenu() {
+    $("#navigation")?.classList.remove("open");
 
-      const plat = bouton.dataset.dish || "Plat sélectionné";
-      const titre = document.getElementById("selectedDish");
+    $("#menuToggle")?.setAttribute("aria-expanded", "false");
+}
 
-      if (titre) {
-        titre.textContent = plat;
-      }
 
-      afficherPage("commande", true);
+/* =========================================
+   4. MENU MOBILE
+========================================= */
+
+function initializeMobileMenu() {
+    const toggle = $("#menuToggle");
+    const navigation = $("#navigation");
+
+    if (!toggle || !navigation) return;
+
+    toggle.addEventListener("click", () => {
+        const isOpen = navigation.classList.toggle("open");
+
+        toggle.setAttribute("aria-expanded", String(isOpen));
     });
-  });
 
-  // Confirmer une commande de démonstration
-  const confirmOrder = document.getElementById("confirmOrder");
+    navigation.addEventListener("click", event => {
+        const link = event.target.closest("a");
 
-  if (confirmOrder) {
+        if (link) {
+            closeMobileMenu();
+        }
+    });
+}
 
-    confirmOrder.addEventListener("click", function () {
 
-      const nom = document.getElementById("customerName").value.trim();
-      const telephone = document.getElementById("customerPhone").value.trim();
-      const quantite = Number(document.getElementById("quantity").value);
+/* =========================================
+   5. AFFICHAGE DES 20 PLATS
+========================================= */
 
-      const plat = document.getElementById("selectedDish").textContent;
-      const message = document.getElementById("orderMessage");
+let currentFilter = "tous";
+let currentSearch = "";
+let selectedDish = null;
 
-      if (!nom || !telephone || !Number.isInteger(quantite) ||
-          quantite < 1 || quantite > 50) {
+function categoryLabel(category) {
+    const labels = {
+        plats: "Plats",
+        pizza: "Pizza",
+        burgers: "Burger",
+        desserts: "Dessert",
+        boissons: "Boisson"
+    };
 
-        message.textContent =
-          "Veuillez renseigner votre nom, votre téléphone et une quantité valide.";
+    return labels[category] || "Plat";
+}
+
+function renderDishes() {
+    const grid = $("#dishGrid");
+
+    if (!grid) return;
+
+    const filteredDishes = dishes.filter(dish => {
+        const matchesCategory =
+            currentFilter === "tous" ||
+            dish.category === currentFilter;
+
+        const searchableText = (
+            dish.name + " " + dish.description + " " + dish.category
+        ).toLowerCase();
+
+        const matchesSearch = searchableText.includes(
+            currentSearch.toLowerCase()
+        );
+
+        return matchesCategory && matchesSearch;
+    });
+
+    if (filteredDishes.length === 0) {
+        grid.innerHTML = `
+            <div class="empty-state">
+                <h3>Aucun plat trouvé</h3>
+                <p>Essaie un autre mot ou une autre catégorie.</p>
+            </div>
+        `;
 
         return;
-      }
-
-      message.textContent =
-        "Démonstration réussie : " +
-        quantite + " × " + plat +
-        ". Aucune commande réelle n'a été envoyée.";
-    });
-  }
-
-  // Gestion des demandes d'abonnement RestauQR
-let moyenPaiementChoisi = "";
-
-// Sélection du moyen de paiement
-document.querySelectorAll(".payment-option").forEach(function (bouton) {
-  bouton.addEventListener("click", function () {
-    document.querySelectorAll(".payment-option").forEach(function (option) {
-      option.classList.remove("selected");
-    });
-
-    bouton.classList.add("selected");
-    moyenPaiementChoisi = bouton.dataset.payment;
-
-    const message = document.getElementById("paymentMessage");
-
-    if (message) {
-      message.textContent =
-        "Moyen choisi : " + moyenPaiementChoisi +
-        ". Montant : 5 000 FCFA. Clique sur le bouton ci-dessous pour envoyer ta demande.";
     }
-  });
-});
 
-// Envoyer une demande d'abonnement par WhatsApp
-function envoyerDemandeAbonnement() {
-  const restaurant = document.getElementById("restaurantPaymentName");
-  const responsable = document.getElementById("restaurantPaymentOwner");
+    grid.innerHTML = filteredDishes.map(dish => `
+        <article class="dish-card">
 
-  if (!restaurant || !responsable) {
-    alert("Les champs du formulaire de paiement sont introuvables.");
-    return;
-  }
+            <div class="dish-image-wrap">
+                <img
+                    class="dish-image smart-image"
+                    src="${getImageURL(dish.image, 700)}"
+                    alt="${escapeHTML(dish.name)}"
+                    loading="lazy"
+                    data-dish-image="${dish.id}">
 
-  if (!restaurant.value.trim() || !responsable.value.trim()) {
-    alert("Entre le nom du restaurant et celui du responsable.");
-    return;
-  }
+                <span class="dish-category">
+                    ${escapeHTML(categoryLabel(dish.category))}
+                </span>
+            </div>
 
-  if (!moyenPaiementChoisi) {
-    alert("Choisis d'abord MTN Mobile Money ou Celtiis Money.");
-    return;
-  }
+            <div class="dish-content">
+                <h3>${escapeHTML(dish.name)}</h3>
 
-  const demande = {
-    reference: "RQ-" + Date.now(),
-    restaurant: restaurant.value.trim(),
-    responsable: responsable.value.trim(),
-    montant: 5000,
-    moyen: moyenPaiementChoisi,
-    abonnement: "Mensuel",
-    statut: "En attente de vérification",
-    date: new Date().toLocaleString("fr-FR")
-  };
+                <p>${escapeHTML(dish.description)}</p>
 
-  const messageWhatsApp =
-    "Bonjour, je souhaite souscrire à RestauQR.%0A%0A" +
-    "Référence : " + encodeURIComponent(demande.reference) + "%0A" +
-    "Restaurant : " + encodeURIComponent(demande.restaurant) + "%0A" +
-    "Responsable : " + encodeURIComponent(demande.responsable) + "%0A" +
-    "Abonnement : Mensuel%0A" +
-    "Montant : 5 000 FCFA%0A" +
-    "Paiement : " + encodeURIComponent(demande.moyen) + "%0A" +
-    "Statut : En attente de vérification";
+                <div class="dish-footer">
+                    <span class="dish-price">
+                        ${formatPrice(dish.price)}
+                    </span>
 
-  // Remplace ce numéro par ton numéro WhatsApp professionnel,
-  // au format international sans le signe +.
-  const numeroWhatsApp = "229XXXXXXXX";
+                    <button
+                        class="dish-open"
+                        type="button"
+                        data-open-dish="${dish.id}"
+                        aria-label="Voir ${escapeHTML(dish.name)}">
 
-  if (numeroWhatsApp === "229XXXXXXXX") {
-    alert(
-      "La demande est prête, mais le numéro WhatsApp du service " +
-      "doit encore être configuré dans script.js."
-    );
-    return;
-  }
+                        <i data-lucide="arrow-up-right"></i>
+                    </button>
+                </div>
+            </div>
 
-  window.open(
-    "https://wa.me/" + numeroWhatsApp + "?text=" + messageWhatsApp,
-    "_blank"
-  );
+        </article>
+    `).join("");
+
+    refreshIcons();
 }
-  document.querySelectorAll(".payment-option").forEach(function (bouton) {
 
-    bouton.addEventListener("click", function () {
+function initializeFilters() {
+    const filterList = $("#filterList");
 
-      document.querySelectorAll(".payment-option").forEach(function (option) {
-        option.classList.remove("selected");
-      });
+    if (filterList) {
+        filterList.addEventListener("click", event => {
+            const button = event.target.closest("[data-filter]");
 
-      bouton.classList.add("selected");
+            if (!button) return;
 
-      const moyen = bouton.dataset.payment;
-      const message = document.getElementById("paymentMessage");
+            currentFilter = button.dataset.filter;
 
-      if (message) {
-        message.textContent =
-          "Moyen choisi : " + moyen + ". " +
-          "Le paiement réel nécessite une intégration sécurisée. " +
-          "Aucun argent n'est prélevé dans cette démonstration.";
-      }
+            $$(".filter-btn", filterList).forEach(filterButton => {
+                filterButton.classList.toggle(
+                    "active",
+                    filterButton === button
+                );
+            });
+
+            renderDishes();
+        });
+    }
+
+    const search = $("#dishSearch");
+
+    if (search) {
+        search.addEventListener("input", () => {
+            currentSearch = search.value.trim();
+            renderDishes();
+        });
+    }
+}
+
+
+/* =========================================
+   6. FENÊTRE DÉTAILLÉE D'UN PLAT
+========================================= */
+
+function openDish(dishId) {
+    const dish = dishes.find(item => item.id === Number(dishId));
+
+    if (!dish) return;
+
+    selectedDish = dish;
+
+    const modal = $("#dishModal");
+
+    $("#modalDishName").textContent = dish.name;
+    $("#modalDishDescription").textContent = dish.description;
+    $("#modalDishPrice").textContent = formatPrice(dish.price);
+
+    const image = $("#modalDishImage");
+
+    image.src = getImageURL(dish.image, 1000);
+    image.alt = dish.name;
+
+    $("#orderStatus").textContent = "";
+    $("#orderStatus").className = "form-message";
+
+    modal.classList.add("open");
+    modal.setAttribute("aria-hidden", "false");
+
+    document.body.classList.add("modal-open");
+
+    refreshIcons();
+}
+
+function closeDishModal() {
+    const modal = $("#dishModal");
+
+    if (!modal) return;
+
+    modal.classList.remove("open");
+    modal.setAttribute("aria-hidden", "true");
+
+    document.body.classList.remove("modal-open");
+}
+
+function initializeDishModal() {
+    document.addEventListener("click", event => {
+        const button = event.target.closest("[data-open-dish]");
+
+        if (button) {
+            openDish(button.dataset.openDish);
+        }
+
+        if (event.target.closest("[data-close-modal]")) {
+            closeDishModal();
+        }
     });
-  });
 
-  // Formulaire d'inscription
-  const signupForm = document.getElementById("signupForm");
-
-  if (signupForm) {
-
-    signupForm.addEventListener("submit", function (event) {
-
-      event.preventDefault();
-
-      if (!signupForm.reportValidity()) return;
-
-      const message = document.getElementById("signupMessage");
-
-      message.textContent =
-        "Formulaire valide ! La création de compte réelle nécessite " +
-        "un serveur sécurisé. Aucun compte n'a été créé.";
+    document.addEventListener("keydown", event => {
+        if (event.key === "Escape") {
+            closeDishModal();
+        }
     });
-  }
 
-  // Formulaire de connexion
-  const loginForm = document.getElementById("loginForm");
+    $("#demoOrderButton")?.addEventListener("click", () => {
+        const status = $("#orderStatus");
 
-  if (loginForm) {
+        if (!selectedDish || !status) return;
 
-    loginForm.addEventListener("submit", function (event) {
+        status.className = "form-message success";
 
-      event.preventDefault();
+        status.textContent =
+            "Démonstration uniquement : aucune commande n'a été transmise " +
+            "au restaurant. Un système de commande réel devra être connecté.";
 
-      if (!loginForm.reportValidity()) return;
-
-      const message = document.getElementById("loginMessage");
-
-      message.textContent =
-        "La démonstration fonctionne, mais la connexion réelle " +
-        "n'est pas encore configurée.";
+        showToast("Démonstration de commande");
     });
-  }
+}
 
-  // Navigation avec les boutons précédent et suivant du navigateur
-  window.addEventListener("popstate", function () {
 
-    const params = new URLSearchParams(window.location.search);
+/* =========================================
+   7. IMAGES DE SECOURS
+========================================= */
 
-    afficherPage(
-      params.get("page") || "accueil",
-      false
-    );
-  });
+function initializeImageFallbacks() {
+    document.addEventListener("error", event => {
+        const image = event.target;
 
-  // Afficher l'année actuelle dans le pied de page
-  const year = document.getElementById("year");
+        if (!(image instanceof HTMLImageElement)) return;
+        if (!image.classList.contains("smart-image")) return;
 
-  if (year) {
-    year.textContent = new Date().getFullYear();
-  }
+        /*
+         * Si une image distante ne charge pas, on affiche
+         * un fond neutre plutôt qu'une icône cassée.
+         */
+        image.style.visibility = "hidden";
 
-  // Ouvrir la page correspondant à l'adresse actuelle
-  const params = new URLSearchParams(window.location.search);
+        if (image.parentElement) {
+            image.parentElement.style.background =
+                "linear-gradient(135deg, #edf0f4, #f9ead1)";
+        }
+    }, true);
+}
 
-  afficherPage(
-    params.get("page") || "accueil",
-    false
-  );
 
+/* =========================================
+   8. FORMULAIRE D'ABONNEMENT
+========================================= */
+
+function initializeSubscriptionForm() {
+    const form = $("#subscriptionForm");
+
+    if (!form) return;
+
+    form.addEventListener("submit", event => {
+        event.preventDefault();
+
+        const status = $("#subscriptionMessage");
+
+        const restaurantName = $("#restaurantName").value.trim();
+        const ownerName = $("#ownerName").value.trim();
+        const ownerEmail = $("#ownerEmail").value.trim();
+        const ownerPhone = $("#ownerPhone").value.trim();
+
+        const paymentMethod = $(
+            'input[name="paymentMethod"]:checked'
+        )?.value;
+
+        if (
+            !restaurantName ||
+            !ownerName ||
+            !ownerEmail ||
+            !ownerPhone ||
+            !paymentMethod
+        ) {
+            status.className = "form-message error";
+
+            status.textContent =
+                "Vérifie tous les champs et sélectionne un moyen de paiement.";
+
+            return;
+        }
+
+        const paymentNames = {
+            mtn: "MTN Mobile Money",
+            celtiis: "Celtiis Cash",
+            card: "Carte bancaire ou virtuelle"
+        };
+
+        /*
+         * Aucun numéro privé n'est utilisé ici.
+         * Aucune donnée bancaire n'est demandée.
+         * Aucune transaction réelle n'est créée.
+         *
+         * Cette étape doit être remplacée par un appel
+         * à un backend sécurisé relié au prestataire.
+         */
+
+        status.className = "form-message success";
+
+        status.textContent =
+            "Formulaire validé pour " + restaurantName + ". " +
+            "Moyen choisi : " + paymentNames[paymentMethod] + ". " +
+            "Le paiement réel n'est pas encore activé. " +
+            "Le prestataire de paiement doit être connecté avant tout encaissement.";
+
+        showToast("Formulaire d'abonnement validé");
+    });
+}
+
+
+/* =========================================
+   9. FORMULAIRE DE CONNEXION
+========================================= */
+
+function initializeLoginForm() {
+    const form = $("#loginForm");
+
+    if (!form) return;
+
+    form.addEventListener("submit", event => {
+        event.preventDefault();
+
+        const status = $("#loginMessage");
+
+        status.className = "form-message error";
+
+        status.textContent =
+            "La connexion n'est pas encore activée. " +
+            "Un système d'authentification sécurisé côté serveur est nécessaire.";
+
+        /*
+         * Ne jamais stocker les mots de passe dans localStorage.
+         * Ne jamais considérer ce formulaire comme une authentification.
+         */
+    });
+}
+
+
+/* =========================================
+   10. FORMULAIRE DE CONTACT
+========================================= */
+
+function initializeContactForm() {
+    const form = $("#contactForm");
+
+    if (!form) return;
+
+    form.addEventListener("submit", event => {
+        event.preventDefault();
+
+        const name = $("#contactName").value.trim();
+        const email = $("#contactEmail").value.trim();
+        const subject = $("#contactSubject").value;
+        const message = $("#contactMessage").value.trim();
+
+        const status = $("#contactStatus");
+
+        if (!name || !email || !subject || !message) {
+            status.className = "form-message error";
+
+            status.textContent =
+                "Complète tous les champs avant de continuer.";
+
+            return;
+        }
+
+        /*
+         * Aucun message n'est envoyé sur Internet ici.
+         * Un backend ou un service de formulaire sera nécessaire.
+         */
+
+        status.className = "form-message success";
+
+        status.textContent =
+            "Ta demande a été préparée dans cette démonstration, mais " +
+            "elle n'a pas été envoyée. Un service d'envoi devra être connecté.";
+
+        showToast("Formulaire de contact vérifié");
+    });
+}
+
+
+/* =========================================
+   11. INITIALISATION
+========================================= */
+
+function initializeRestauQR() {
+    $("#currentYear").textContent = new Date().getFullYear();
+
+    initializeMobileMenu();
+
+    initializeFilters();
+    renderDishes();
+
+    initializeDishModal();
+    initializeImageFallbacks();
+
+    initializeSubscriptionForm();
+    initializeLoginForm();
+    initializeContactForm();
+
+    renderPage(getPageFromURL());
+
+    refreshIcons();
+}
+
+document.addEventListener("DOMContentLoaded", initializeRestauQR);
+
+window.addEventListener("popstate", () => {
+    renderPage(getPageFromURL());
+    window.scrollTo({ top: 0, behavior: "smooth" });
 });

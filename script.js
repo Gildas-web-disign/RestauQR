@@ -1,320 +1,353 @@
 "use strict";
 
-const plats = [
-  {
-    id: 1,
-    nom: "Poulet braisé",
-    categorie: "Plats",
-    prix: 3500,
-    description: "Poulet grillé accompagné de garnitures.",
-    image: "https://images.unsplash.com/photo-1532550907401-a500c9a57435?auto=format&fit=crop&w=700&q=80",
-    tag: "Populaire"
-  },
-  {
-    id: 2,
-    nom: "Riz au poulet",
-    categorie: "Plats",
-    prix: 2500,
-    description: "Riz savoureux accompagné de poulet.",
-    image: "https://images.unsplash.com/photo-1512058564366-18510be2db19?auto=format&fit=crop&w=700&q=80",
-    tag: "Favori"
-  },
-  {
-    id: 3,
-    nom: "Poisson grillé",
-    categorie: "Plats",
-    prix: 4000,
-    description: "Poisson grillé servi avec des accompagnements.",
-    image: "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&fit=crop&w=700&q=80",
-    tag: "À découvrir"
-  },
-  {
-    id: 4,
-    nom: "Salade fraîche",
-    categorie: "Entrées",
-    prix: 1500,
-    description: "Une sélection de légumes frais et croquants.",
-    image: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=700&q=80",
-    tag: "Frais"
-  },
-  {
-    id: 5,
-    nom: "Jus de bissap",
-    categorie: "Boissons",
-    prix: 500,
-    description: "Boisson traditionnelle à base d'hibiscus.",
-    image: "https://images.unsplash.com/photo-1544145945-f90425340c7e?auto=format&fit=crop&w=700&q=80",
-    tag: "Local"
-  },
-  {
-    id: 6,
-    nom: "Jus de gingembre",
-    categorie: "Boissons",
-    prix: 500,
-    description: "Boisson fraîche au gingembre.",
-    image: "https://images.unsplash.com/photo-1513558161293-cdaf765edfd7?auto=format&fit=crop&w=700&q=80",
-    tag: "Tonique"
-  },
-  {
-    id: 7,
-    nom: "Burger maison",
-    categorie: "Plats",
-    prix: 2500,
-    description: "Burger gourmand avec légumes et frites.",
-    image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=700&q=80",
-    tag: "Gourmand"
-  },
-  {
-    id: 8,
-    nom: "Gâteau au chocolat",
-    categorie: "Desserts",
-    prix: 1200,
-    description: "Un dessert au chocolat pour terminer le repas.",
-    image: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=700&q=80",
-    tag: "Dessert"
-  },
-  {
-    id: 9,
-    nom: "Salade de fruits",
-    categorie: "Desserts",
-    prix: 1000,
-    description: "Des fruits frais coupés et colorés.",
-    image: "https://images.unsplash.com/photo-1490474418585-ba9bad8fd0ea?auto=format&fit=crop&w=700&q=80",
-    tag: "Frais"
+document.addEventListener("DOMContentLoaded", function () {
+
+  const app = document.getElementById("app");
+  const menuToggle = document.getElementById("menuToggle");
+  const mainNav = document.getElementById("mainNav");
+
+  // Liste des pages disponibles
+  const pages = {
+    accueil: "page-accueil",
+    menus: "page-menus",
+    fonctionnalites: "page-fonctionnalites",
+    tarifs: "page-tarifs",
+    abonnement: "page-abonnement",
+    inscription: "page-inscription",
+    connexion: "page-connexion",
+    commande: "page-commande",
+    contact: "page-contact",
+    introuvable: "page-introuvable"
+  };
+
+  // Afficher une page sans faire défiler l'écran
+  function afficherPage(nom, historique = true) {
+
+    if (!pages[nom]) {
+      nom = "introuvable";
+    }
+
+    document.querySelectorAll(".page").forEach(function (page) {
+      page.hidden = true;
+    });
+
+    const pageCible = document.getElementById(pages[nom]);
+
+    if (pageCible) {
+      pageCible.hidden = false;
+    }
+
+    // Fermer le menu mobile
+    if (mainNav) {
+      mainNav.classList.remove("open");
+    }
+
+    if (menuToggle) {
+      menuToggle.setAttribute("aria-expanded", "false");
+    }
+
+    // Mettre à jour l'adresse de la page
+    if (historique) {
+      const url = new URL(window.location.href);
+      url.searchParams.set("page", nom);
+
+      window.history.pushState(
+        { page: nom },
+        "",
+        url.pathname + url.search + url.hash
+      );
+    }
+
+    // Modifier le titre de l'onglet
+    document.title =
+      "RestauQR — " +
+      nom.charAt(0).toUpperCase() +
+      nom.slice(1);
+
+    if (app) {
+      app.dataset.currentPage = nom;
+    }
   }
-];
 
-let categorieActive = "Tous";
-let panier = {};
+  // Navigation entre les pages
+  document.addEventListener("click", function (event) {
 
-const formatFCFA = montant =>
-  new Intl.NumberFormat("fr-FR").format(montant) + " FCFA";
+    const lien = event.target.closest("a");
 
-function afficherPlats() {
-  const grille = document.getElementById("foodGrid");
-  const recherche = document.getElementById("searchInput").value
-    .trim()
-    .toLocaleLowerCase("fr");
+    if (!lien) return;
 
-  const resultats = plats.filter(plat => {
-    const bonneCategorie =
-      categorieActive === "Tous" || plat.categorie === categorieActive;
+    const href = lien.getAttribute("href");
 
-    const bonNom =
-      plat.nom.toLocaleLowerCase("fr").includes(recherche) ||
-      plat.description.toLocaleLowerCase("fr").includes(recherche);
+    if (!href) return;
 
-    return bonneCategorie && bonNom;
+    // Ne pas intercepter les liens externes
+    if (
+      href.startsWith("https://") ||
+      href.startsWith("http://") ||
+      href.startsWith("mailto:") ||
+      href.startsWith("tel:") ||
+      href.startsWith("#")
+    ) {
+      return;
+    }
+
+    let url;
+
+    try {
+      url = new URL(href, window.location.href);
+    } catch (error) {
+      return;
+    }
+
+    // Vérifier que le lien pointe vers le site actuel
+    if (url.origin !== window.location.origin) return;
+
+    // Accepter index.html?page=... ou ?page=...
+    const cheminActuel = window.location.pathname.replace(/\/+$/, "");
+    const cheminCible = url.pathname.replace(/\/+$/, "");
+
+    const memePage =
+      cheminActuel === cheminCible ||
+      cheminCible.endsWith("/index.html");
+
+    if (memePage && (url.searchParams.has("page") ||
+                     cheminCible.endsWith("/index.html"))) {
+
+      event.preventDefault();
+
+      const nom = url.searchParams.get("page") || "accueil";
+
+      afficherPage(nom, true);
+    }
   });
 
-  if (resultats.length === 0) {
-    grille.innerHTML =
-      '<p class="empty-message">Aucun plat trouvé. Essayez une autre recherche.</p>';
+  // Menu mobile
+  if (menuToggle && mainNav) {
+
+    menuToggle.setAttribute("aria-expanded", "false");
+
+    menuToggle.addEventListener("click", function () {
+
+      const ouvert = mainNav.classList.toggle("open");
+
+      menuToggle.setAttribute(
+        "aria-expanded",
+        String(ouvert)
+      );
+    });
+  }
+
+  // Sélectionner un plat et ouvrir la page de commande
+  document.querySelectorAll(".order-btn").forEach(function (bouton) {
+
+    bouton.addEventListener("click", function () {
+
+      const plat = bouton.dataset.dish || "Plat sélectionné";
+      const titre = document.getElementById("selectedDish");
+
+      if (titre) {
+        titre.textContent = plat;
+      }
+
+      afficherPage("commande", true);
+    });
+  });
+
+  // Confirmer une commande de démonstration
+  const confirmOrder = document.getElementById("confirmOrder");
+
+  if (confirmOrder) {
+
+    confirmOrder.addEventListener("click", function () {
+
+      const nom = document.getElementById("customerName").value.trim();
+      const telephone = document.getElementById("customerPhone").value.trim();
+      const quantite = Number(document.getElementById("quantity").value);
+
+      const plat = document.getElementById("selectedDish").textContent;
+      const message = document.getElementById("orderMessage");
+
+      if (!nom || !telephone || !Number.isInteger(quantite) ||
+          quantite < 1 || quantite > 50) {
+
+        message.textContent =
+          "Veuillez renseigner votre nom, votre téléphone et une quantité valide.";
+
+        return;
+      }
+
+      message.textContent =
+        "Démonstration réussie : " +
+        quantite + " × " + plat +
+        ". Aucune commande réelle n'a été envoyée.";
+    });
+  }
+
+  // Gestion des demandes d'abonnement RestauQR
+let moyenPaiementChoisi = "";
+
+// Sélection du moyen de paiement
+document.querySelectorAll(".payment-option").forEach(function (bouton) {
+  bouton.addEventListener("click", function () {
+    document.querySelectorAll(".payment-option").forEach(function (option) {
+      option.classList.remove("selected");
+    });
+
+    bouton.classList.add("selected");
+    moyenPaiementChoisi = bouton.dataset.payment;
+
+    const message = document.getElementById("paymentMessage");
+
+    if (message) {
+      message.textContent =
+        "Moyen choisi : " + moyenPaiementChoisi +
+        ". Montant : 5 000 FCFA. Clique sur le bouton ci-dessous pour envoyer ta demande.";
+    }
+  });
+});
+
+// Envoyer une demande d'abonnement par WhatsApp
+function envoyerDemandeAbonnement() {
+  const restaurant = document.getElementById("restaurantPaymentName");
+  const responsable = document.getElementById("restaurantPaymentOwner");
+
+  if (!restaurant || !responsable) {
+    alert("Les champs du formulaire de paiement sont introuvables.");
     return;
   }
 
-  grille.innerHTML = resultats.map(plat => `
-    <article class="food-card">
-      <div class="food-image">
-        <img
-          src="${plat.image}"
-          alt="${plat.nom}"
-          loading="lazy"
-          onerror="this.onerror=null;this.src='https://placehold.co/700x450/182335/f5b942?text=Photo+du+plat';">
-        <span class="food-tag">${plat.tag}</span>
-      </div>
-
-      <div class="food-info">
-        <h3>${plat.nom}</h3>
-        <p class="food-description">${plat.description}</p>
-
-        <div class="food-bottom">
-          <span class="food-price">${formatFCFA(plat.prix)}</span>
-          <button
-            class="add-button"
-            onclick="ajouterAuPanier(${plat.id})"
-            aria-label="Ajouter ${plat.nom} au panier">+</button>
-        </div>
-      </div>
-    </article>
-  `).join("");
-}
-
-function ajouterAuPanier(id) {
-  const plat = plats.find(p => p.id === id);
-  if (!plat) return;
-
-  panier[id] = (panier[id] || 0) + 1;
-  actualiserPanier();
-
-  const bouton = document.getElementById("floatingCart");
-  bouton.animate(
-    [
-      { transform: "scale(1)" },
-      { transform: "scale(1.12)" },
-      { transform: "scale(1)" }
-    ],
-    { duration: 250 }
-  );
-}
-
-function modifierQuantite(id, changement) {
-  if (!panier[id]) return;
-
-  panier[id] += changement;
-
-  if (panier[id] <= 0) {
-    delete panier[id];
-  }
-
-  actualiserPanier();
-  afficherPanier();
-}
-
-function actualiserPanier() {
-  const quantite = Object.values(panier).reduce(
-    (total, nombre) => total + nombre, 0
-  );
-
-  document.getElementById("cartCount").textContent = quantite;
-}
-
-function afficherPanier() {
-  const conteneur = document.getElementById("cartItems");
-  let total = 0;
-
-  const lignes = Object.entries(panier).map(([id, quantite]) => {
-    const plat = plats.find(p => p.id === Number(id));
-    if (!plat) return "";
-
-    const sousTotal = plat.prix * quantite;
-    total += sousTotal;
-
-    return `
-      <div class="cart-line">
-        <div>
-          <strong>${plat.nom}</strong>
-          <small>${formatFCFA(plat.prix)} × ${quantite}</small>
-        </div>
-
-        <div class="quantity-controls">
-          <button onclick="modifierQuantite(${plat.id}, -1)"
-            aria-label="Retirer une unité">−</button>
-          <span>${quantite}</span>
-          <button onclick="modifierQuantite(${plat.id}, 1)"
-            aria-label="Ajouter une unité">+</button>
-        </div>
-      </div>
-    `;
-  }).filter(Boolean);
-
-  conteneur.innerHTML = lignes.length
-    ? lignes.join("")
-    : '<p class="empty-message">Votre panier est vide.</p>';
-
-  document.getElementById("cartTotal").textContent = formatFCFA(total);
-}
-
-function ouvrirPanier() {
-  afficherPanier();
-  document.getElementById("cartModal").hidden = false;
-  document.body.style.overflow = "hidden";
-}
-
-function fermerPanier() {
-  document.getElementById("cartModal").hidden = true;
-  document.body.style.overflow = "";
-}
-
-function ouvrirConnexion() {
-  document.getElementById("loginModal").hidden = false;
-  document.body.style.overflow = "hidden";
-}
-
-function fermerConnexion() {
-  document.getElementById("loginModal").hidden = true;
-  document.body.style.overflow = "";
-}
-
-function confirmerCommande() {
-  if (Object.keys(panier).length === 0) {
-    alert("Votre panier est vide. Ajoutez d'abord un plat.");
+  if (!restaurant.value.trim() || !responsable.value.trim()) {
+    alert("Entre le nom du restaurant et celui du responsable.");
     return;
   }
 
-  alert(
-    "Le panier fonctionne en mode démonstration. " +
-    "Aucune commande n'a été envoyée au restaurant. " +
-    "La connexion à la base de données sera nécessaire pour activer cette fonction."
+  if (!moyenPaiementChoisi) {
+    alert("Choisis d'abord MTN Mobile Money ou Celtiis Money.");
+    return;
+  }
+
+  const demande = {
+    reference: "RQ-" + Date.now(),
+    restaurant: restaurant.value.trim(),
+    responsable: responsable.value.trim(),
+    montant: 5000,
+    moyen: moyenPaiementChoisi,
+    abonnement: "Mensuel",
+    statut: "En attente de vérification",
+    date: new Date().toLocaleString("fr-FR")
+  };
+
+  const messageWhatsApp =
+    "Bonjour, je souhaite souscrire à RestauQR.%0A%0A" +
+    "Référence : " + encodeURIComponent(demande.reference) + "%0A" +
+    "Restaurant : " + encodeURIComponent(demande.restaurant) + "%0A" +
+    "Responsable : " + encodeURIComponent(demande.responsable) + "%0A" +
+    "Abonnement : Mensuel%0A" +
+    "Montant : 5 000 FCFA%0A" +
+    "Paiement : " + encodeURIComponent(demande.moyen) + "%0A" +
+    "Statut : En attente de vérification";
+
+  // Remplace ce numéro par ton numéro WhatsApp professionnel,
+  // au format international sans le signe +.
+  const numeroWhatsApp = "229XXXXXXXX";
+
+  if (numeroWhatsApp === "229XXXXXXXX") {
+    alert(
+      "La demande est prête, mais le numéro WhatsApp du service " +
+      "doit encore être configuré dans script.js."
+    );
+    return;
+  }
+
+  window.open(
+    "https://wa.me/" + numeroWhatsApp + "?text=" + messageWhatsApp,
+    "_blank"
   );
 }
+  document.querySelectorAll(".payment-option").forEach(function (bouton) {
 
-document.querySelectorAll(".category").forEach(bouton => {
-  bouton.addEventListener("click", () => {
-    document.querySelectorAll(".category").forEach(b =>
-      b.classList.remove("active")
-    );
+    bouton.addEventListener("click", function () {
 
-    bouton.classList.add("active");
-    categorieActive = bouton.dataset.category;
-    afficherPlats();
+      document.querySelectorAll(".payment-option").forEach(function (option) {
+        option.classList.remove("selected");
+      });
+
+      bouton.classList.add("selected");
+
+      const moyen = bouton.dataset.payment;
+      const message = document.getElementById("paymentMessage");
+
+      if (message) {
+        message.textContent =
+          "Moyen choisi : " + moyen + ". " +
+          "Le paiement réel nécessite une intégration sécurisée. " +
+          "Aucun argent n'est prélevé dans cette démonstration.";
+      }
+    });
   });
-});
 
-document.getElementById("searchInput").addEventListener(
-  "input",
-  afficherPlats
-);
+  // Formulaire d'inscription
+  const signupForm = document.getElementById("signupForm");
 
-document.getElementById("menuToggle").addEventListener("click", () => {
-  document.getElementById("navigation").classList.toggle("open");
-});
+  if (signupForm) {
 
-document.querySelectorAll("#navigation a").forEach(lien => {
-  lien.addEventListener("click", () => {
-    document.getElementById("navigation").classList.remove("open");
-  });
-});
+    signupForm.addEventListener("submit", function (event) {
 
-document.querySelectorAll(".modal").forEach(modale => {
-  modale.addEventListener("click", evenement => {
-    if (evenement.target !== modale) return;
+      event.preventDefault();
 
-    modale.hidden = true;
-    document.body.style.overflow = "";
-  });
-});
+      if (!signupForm.reportValidity()) return;
 
-document.addEventListener("keydown", evenement => {
-  if (evenement.key === "Escape") {
-    fermerPanier();
-    fermerConnexion();
+      const message = document.getElementById("signupMessage");
+
+      message.textContent =
+        "Formulaire valide ! La création de compte réelle nécessite " +
+        "un serveur sécurisé. Aucun compte n'a été créé.";
+    });
   }
+
+  // Formulaire de connexion
+  const loginForm = document.getElementById("loginForm");
+
+  if (loginForm) {
+
+    loginForm.addEventListener("submit", function (event) {
+
+      event.preventDefault();
+
+      if (!loginForm.reportValidity()) return;
+
+      const message = document.getElementById("loginMessage");
+
+      message.textContent =
+        "La démonstration fonctionne, mais la connexion réelle " +
+        "n'est pas encore configurée.";
+    });
+  }
+
+  // Navigation avec les boutons précédent et suivant du navigateur
+  window.addEventListener("popstate", function () {
+
+    const params = new URLSearchParams(window.location.search);
+
+    afficherPage(
+      params.get("page") || "accueil",
+      false
+    );
+  });
+
+  // Afficher l'année actuelle dans le pied de page
+  const year = document.getElementById("year");
+
+  if (year) {
+    year.textContent = new Date().getFullYear();
+  }
+
+  // Ouvrir la page correspondant à l'adresse actuelle
+  const params = new URLSearchParams(window.location.search);
+
+  afficherPage(
+    params.get("page") || "accueil",
+    false
+  );
+
 });
-
-document.getElementById("year").textContent = new Date().getFullYear();
-
-afficherPlats();
-actualiserPanier();
-// ====================================
-// RESTAUQR — CONNEXION SUPABASE
-// ====================================
-
-const SUPABASE_URL = "https://pdrqbvcxnsnbhuyttrlq.supabase.co";
-
-const SUPABASE_PUBLISHABLE_KEY =
-    "sb_publishable_Dc9SauKA3GBbHcxZhXLftA_rJ-axbdv";
-
-// Vérifier que la bibliothèque Supabase est chargée
-if (typeof window.supabase !== "undefined") {
-    window.restauqrDB = window.supabase.createClient(
-        SUPABASE_URL,
-        SUPABASE_PUBLISHABLE_KEY
-    );
-
-    console.log("RestauQR : client Supabase initialisé.");
-} else {
-    console.error(
-        "RestauQR : bibliothèque Supabase non chargée. Vérifie index.html."
-    );
-}
